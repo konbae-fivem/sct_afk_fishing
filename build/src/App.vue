@@ -1,13 +1,13 @@
 <template>
   <div class="transition-all duration-500 select-none" :class="InterfaceControl.show ? 'opacity-100' : 'opacity-0'">
-    <div class=" flex h-screen items-center justify-start absolute m-auto left-0 right-0 ">
+    <div class=" flex h-screen items-center justify-start absolute m-auto left-0 scale-75">
 
-      <div class="flex flex-col scale-75">
+      <div class="flex flex-col">
         <div class="bg-black/70 w-72 rounded-lg">
           <div class="p-5">
             <div class="h-40 w-auto flex items-center justify-center bg-black/30 rounded-lg">
               <div class="text-7xl text-bold text-white">
-                {{ CountFormat.format(InterfaceControl.count)}}
+                {{ CountFormat.format(InterfaceControl.count) }}
               </div>
             </div>
 
@@ -29,22 +29,13 @@
             <kbd class="px-1 py-1.2 text-sm font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">X</kbd>
             Cancel AFK Fishing
           </div>
-
-        </div>
-
-        <div class="bg-black/70 w-72 rounded-lg mt-2 p-3">
-          <div class="text-center text-sm text-white font-normal">
-            Press
-            <kbd class="px-1 py-1.2 text-sm font-semibold text-gray-800 bg-gray-100 border border-gray-200 rounded-lg dark:bg-gray-600 dark:text-gray-100 dark:border-gray-500">K</kbd>
-            Change AFK Status
-          </div>
         </div>
       </div>
     </div>
 
-    <div class="flex h-screen items-center justify-end absolute m-auto left-0 right-0 ">
+    <div class="flex h-screen items-center justify-end absolute m-auto right-0 scale-75">
 
-      <div class="flex flex-col scale-75">
+      <div class="flex flex-col">
         <div class="bg-black/70 w-80 rounded-lg">
           <div class="p-5">
             <p class="text-center text-lg text-white font-normal uppercase mb-1">Log Rewards</p>
