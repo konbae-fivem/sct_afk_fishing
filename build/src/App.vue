@@ -7,11 +7,8 @@
           <div class="p-4">
             <div class="h-40 w-auto flex items-center justify-center bg-black/30 rounded-lg">
               <div class="text-8xl text-bold text-white">
-                {{ CountFormat.format(InterfaceControl.count) }}
+                {{ InterfaceControl.timer_cooldown }}
               </div>
-            </div>
-            <div class="w-full bg-white rounded-full h-2.5 mt-3">
-              <div id="processbar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
             </div>
 
             <div class="text-center text-sm text-white font-normal mt-3">
@@ -28,8 +25,6 @@
         <div class="bg-black/70 rounded-lg">
           <p class="text-center text-lg text-white font-normal uppercase">Log Rewards</p>
           <div class="p-5 bg-black/20">
-
-
             <div class="flex flex-col gap-y-3">
               <div class="flex justify-between" v-for="item in InterfaceControl.log_rewards" :key="item.label">
 
@@ -44,8 +39,11 @@
                 <div class="flex-1 flex justify-center items-center rounded-lg">
                   <p class="text-lg text-white ">{{ CountFormat.format(item.amount) }}</p>
                 </div>
-
               </div>
+            </div>
+
+            <div class="flex justify-center items-center mt-2">
+              <p class="text-white">ROUND: {{ CountFormat.format(InterfaceControl.count) }}</p>
             </div>
           </div>
         </div>
@@ -55,7 +53,6 @@
 </template>
 
 <script setup>
-import { gsap, Power0 } from "gsap"
 import { reactive, onMounted, onUnmounted } from "vue";
 import { emitClient } from "./utils/fivem";
 
@@ -65,32 +62,10 @@ const InterfaceControl = reactive({
   show: false,
   config: null,
   count: 0,
-  mode: false,
+  timer: null,
+  timer_cooldown: 0,
   log_rewards: [],
-  timer: null
 })
-
-const startTimer = async () => {
-  InterfaceControl.timer = gsap.to('#processbar', {
-    width: '100%', duration: InterfaceControl.config.DurationGetReward, ease: Power0.easeNone, onComplete: () => {
-      if (InterfaceControl.mode) {
-        InterfaceControl.count++
-        emitClient("sct_afk_fishing", "ActionFinished")
-        stopTimer()
-      }
-    }
-  })
-}
-
-const stopTimer = async () => {
-  InterfaceControl.timer = gsap.to("#processbar", {
-    width: '0%', duration: 0.1, ease: Power0.easeNone, onComplete: () => {
-      if (InterfaceControl.mode) {
-        startTimer()
-      }
-    }
-  })
-}
 
 const onMessages = async (event) => {
   const { action, data } = event.data
@@ -98,24 +73,27 @@ const onMessages = async (event) => {
   if (action === "OPEN_INTERFACE") {
     InterfaceControl.show = true
     InterfaceControl.config = data.config
-    InterfaceControl.count = 0
-    InterfaceControl.mode = false
-    InterfaceControl.timer = null
+    InterfaceControl.timer_cooldown = data.config.DurationGetReward
   }
 
   if (action === "ACTION_INTERFACE") {
-    InterfaceControl.mode = data
-    if (InterfaceControl.timer) {
-      InterfaceControl.timer.kill()
-      InterfaceControl.timer = null
-    }
-
-    if (!InterfaceControl.mode) {
-      stopTimer()
-    } else {
+    if (data) {
       InterfaceControl.count = 0
       InterfaceControl.log_rewards = []
-      startTimer()
+      InterfaceControl.timer = setInterval(() => {
+        if (InterfaceControl.timer_cooldown <= 0) {
+          InterfaceControl.count++
+          InterfaceControl.timer_cooldown = InterfaceControl.config.DurationGetReward
+          emitClient("sct_afk_fishing", "ActionFinished")
+        } else {
+          InterfaceControl.timer_cooldown--
+        }
+      }, 1000);
+    } else {
+      if (InterfaceControl.timer) {
+        clearInterval(InterfaceControl.timer)
+        InterfaceControl.timer = null
+      }
     }
   }
 
@@ -131,8 +109,11 @@ const onMessages = async (event) => {
   if (action === "CLOSE_INTERFACE") {
     InterfaceControl.show = false
     InterfaceControl.count = 0
-    InterfaceControl.mode = false
-    InterfaceControl.timer = null
+
+    if (InterfaceControl.timer) {
+      clearInterval(InterfaceControl.timer)
+      InterfaceControl.timer = null
+    }
   }
 }
 
